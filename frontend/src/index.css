@@ -1,0 +1,2 @@
+/* Base resets only — all styles are in App.jsx and page components */
+*, *::before, *::after { box-sizing: border-box; }
