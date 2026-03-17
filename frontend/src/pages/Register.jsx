@@ -12,7 +12,6 @@ const [form, setForm] = useState({ name: "", telegramUsername: "", gmail: "" });
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.telegramUsername || !form.gmail) { setError("All fields are required."); return; }
-    if (!form.phone.startsWith("+")) { setError("Phone must start with country code, e.g. +91..."); return; }
     setLoading(true);
     try {
       const { data } = await axios.post(`${API}/register`, form);
@@ -23,9 +22,9 @@ const [form, setForm] = useState({ name: "", telegramUsername: "", gmail: "" });
   };
 
   const connectCalendar = () => {
-    const phone = existingStudent?.phone || form.phone;
-    if (!phone) { setError("Register or enter your phone number first."); return; }
-    window.location.href = `${API}/auth/google?phone=${encodeURIComponent(phone)}`;
+    const username = existingStudent?.telegram_username || form.telegramUsername;
+    if (!username) { setError("Register or enter your Telegram username first."); return; }
+    window.location.href = `${API}/auth/google?telegramUsername=${encodeURIComponent(username)}`;
   };
 
   if (existingStudent) {

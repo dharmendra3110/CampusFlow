@@ -12,13 +12,13 @@ export default function Deadline({ student }) {
   const [loadingList, setLoadingList] = useState(false);
 
   useEffect(() => {
-    if (student?.phone) fetchDeadlines();
+    if (student?.telegram_username) fetchDeadlines();
   }, [student]);
 
   const fetchDeadlines = async () => {
     setLoadingList(true);
     try {
-      const { data } = await axios.get(`${API}/deadlines/${student.phone}`);
+      const { data } = await axios.get(`${API}/deadlines/${student.telegram_username}`);
       setDeadlines(data.deadlines || []);
     } catch { /* ignore */ }
     finally { setLoadingList(false); }
@@ -29,10 +29,10 @@ export default function Deadline({ student }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!form.title || !form.date || !form.time) { setError("All fields required."); return; }
-    if (!student?.phone) { setError("Please register first to send reminders."); return; }
+    if (!student?.telegram_username) { setError("Please register first to send reminders."); return; }
     setLoading(true);
     try {
-      const { data } = await axios.post(`${API}/deadline`, { ...form, phone: student.phone, name: student.name });
+      const { data } = await axios.post(`${API}/deadline`, { ...form, telegramUsername: student.telegram_username });
       setResult(data);
       setForm({ title:"", date:"", time:"" });
       fetchDeadlines();

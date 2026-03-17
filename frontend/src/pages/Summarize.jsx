@@ -25,7 +25,7 @@ export default function Summarize({ student }) {
     if (notice.trim().length < 20) { setError("Please paste a longer notice text."); return; }
     setLoading(true); setError(""); setSummary(null); setAddedMsg("");
     try {
-      const { data } = await axios.post(`${API}/summarize`, { notice, phone: student?.phone });
+      const { data } = await axios.post(`${API}/summarize`, { notice });
       setSummary(data.summary);
     } catch (err) {
       setError(err.response?.data?.error || "AI summarization failed.");
@@ -33,14 +33,14 @@ export default function Summarize({ student }) {
   };
 
   const addAllDeadlines = async () => {
-    if (!student?.phone || !summary?.deadlines?.length) return;
+    if (!student?.telegram_username || !summary?.deadlines?.length) return;
     setAddingAll(true);
     let count = 0;
     for (const d of summary.deadlines) {
       try {
         await axios.post(`${API}/deadline`, {
           title: d.title, date: d.date, time: d.time,
-          phone: student.phone, name: student.name,
+          telegramUsername: student.telegram_username,
         });
         count++;
       } catch { /* skip individual failures */ }

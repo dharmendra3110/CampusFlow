@@ -35,7 +35,7 @@ export default function Chat({ student }) {
     setMessages(m => [...m, { role: "user", text: msg }]);
     setLoading(true);
     try {
-      const { data } = await axios.post(`${API}/chat`, { message: msg, phone: student?.phone });
+      const { data } = await axios.post(`${API}/chat`, { message: msg, telegramUsername: student?.telegram_username });
       setMessages(m => [...m, { role: "assistant", text: data.reply }]);
     } catch {
       setMessages(m => [...m, { role: "assistant", text: "Sorry, I'm having trouble connecting right now. Make sure the backend is running!" }]);
