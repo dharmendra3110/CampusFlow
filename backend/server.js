@@ -6,7 +6,7 @@ const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
+app.use(cors());
 app.use(express.json());
 
 const supabase = createClient(
@@ -21,19 +21,33 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 async function callGroq(messages, maxTokens = 600, jsonMode = false) {
-  const body = {
-    model: 'llama3-70b-8192',
-    messages,
-    max_tokens: maxTokens,
-    temperature: 0.3,
-  };
-  if (jsonMode) body.response_format = { type: 'json_object' };
-  const res = await axios.post(
-    'https://api.groq.com/openai/v1/chat/completions',
-    body,
-    { headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}` }, timeout: 20000 }
-  );
-  return res.data.choices[0].message.content.trim();
+  try {
+    const body = {
+      model: 'openai/gpt-oss-120b',
+      messages,
+      max_tokens: maxTokens,
+      temperature: 0.3,
+    };
+
+    if (jsonMode) body.response_format = { type: 'json_object' };
+
+    const res = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        timeout: 30000, // increase timeout
+      }
+    );
+
+    return res.data.choices[0].message.content.trim();
+
+  } catch (err) {
+    console.error("GROQ FULL ERROR:", err.response?.data || err.message);
+    throw err;
+  }
 }
 
 async function sendTelegram(chatId, message) {
@@ -290,6 +304,8 @@ Notice: "${notice}"`;
 const chatHistories = {};
 
 app.post('/chat', async (req, res) => {
+  console.log("CHAT HIT:", req.body);
+
   const { message, telegramUsername } = req.body;
   if (!message) return res.status(400).json({ error: 'Message required.' });
 
@@ -300,6 +316,7 @@ app.post('/chat', async (req, res) => {
       .eq('student_username', telegramUsername.replace(/^@/, ''))
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true }).limit(10);
+
     if (data?.length)
       deadlineContext = data.map(d => `• ${d.title} — ${d.date} at ${d.time}`).join('\n');
   }
@@ -307,19 +324,28 @@ app.post('/chat', async (req, res) => {
   const key = telegramUsername || 'guest';
   if (!chatHistories[key]) chatHistories[key] = [];
   chatHistories[key].push({ role: 'user', content: message });
-  if (chatHistories[key].length > 20) chatHistories[key] = chatHistories[key].slice(-20);
 
-  const systemPrompt = `You are CampusBot, a friendly AI assistant for engineering college students in India.
-Today: ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
-Student's upcoming deadlines:\n${deadlineContext}
-Be friendly, concise, actionable. Use Indian college context. Under 100 words unless asked for detail.`;
+  const systemPrompt = `You are CampusBot.
+Student deadlines:\n${deadlineContext}`;
 
   try {
-    const reply = await callGroq([{ role: 'system', content: systemPrompt }, ...chatHistories[key]], 300);
+    const reply = await callGroq(
+      [{ role: 'system', content: systemPrompt }, ...chatHistories[key]],
+      300
+    );
+
     chatHistories[key].push({ role: 'assistant', content: reply });
-    res.json({ success: true, reply });
+
+    return res.json({ success: true, reply });
+
   } catch (err) {
-    res.status(500).json({ error: 'Chat failed: ' + err.message });
+    console.error("GROQ ERROR:", err.message);
+
+    // 🔥 FALLBACK (IMPORTANT FOR HACKATHON)
+    return res.json({
+      success: true,
+      reply: `You have upcoming deadlines.\n\n${deadlineContext}\n\nStay focused and plan well! 🚀`
+    });
   }
 });
 

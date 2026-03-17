@@ -56,13 +56,13 @@ export default function Deadline({ student }) {
       <div className="page-title">Add Deadline</div>
       <p className="page-sub">
         Each deadline triggers a{" "}
-        <span style={{ color:"var(--accent-2)" }}>WhatsApp reminder</span>
+        <span style={{ color:"var(--accent-2)" }}>Telegram reminder</span>
         {student?.calendar_connected && <> + <span style={{ color:"var(--accent)" }}>Google Calendar event</span></>}.
       </p>
 
       {!student && (
         <div className="alert-warn" style={{ marginBottom:24 }}>
-          ⚡ Register first to receive WhatsApp reminders.
+          ⚡ Register first to receive Telegram reminders.
         </div>
       )}
 
@@ -97,7 +97,7 @@ export default function Deadline({ student }) {
               borderRadius:"var(--radius)", padding:"14px 16px", marginBottom:16
             }}>
               <div style={{ fontSize:11, color:"rgba(37,211,102,0.7)", fontWeight:700, letterSpacing:"0.5px", textTransform:"uppercase", marginBottom:8, fontFamily:"'JetBrains Mono',monospace" }}>
-                📱 WhatsApp Preview
+                📱 Telegram Preview
               </div>
               <div style={{ fontSize:13, lineHeight:1.7, color:"#d4f5de", fontFamily:"'JetBrains Mono',monospace" }}>
                 🚨 *Reminder from CampusFlow*<br/>
@@ -123,7 +123,7 @@ export default function Deadline({ student }) {
       {/* Integration status */}
       {student && (
         <div style={{ display:"flex", gap:10, marginTop:16 }}>
-          <span className="tag tag-green">📱 WhatsApp ready</span>
+          <span className="tag tag-green">📱 Telegram ready</span>
           {student.calendar_connected
             ? <span className="tag tag-blue">📅 Calendar connected</span>
             : <span className="tag" style={{ background:"rgba(255,255,255,0.04)", color:"var(--muted)", border:"1px solid var(--border)" }}>📅 Calendar not connected</span>
